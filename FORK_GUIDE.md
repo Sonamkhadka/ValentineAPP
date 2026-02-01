@@ -21,7 +21,7 @@ Want to create your own DateMePlease proposal? Here's the fastest way!
 #### Change the Name
 1. Open `index.html`
 2. Click the **Edit** button (pencil icon)
-3. Find line 75:
+3. Look for line 77 (or search for "Pookie"):
    ```html
    <h3 class="username">Pookie 🌸</h3>
    ```
@@ -29,7 +29,7 @@ Want to create your own DateMePlease proposal? Here's the fastest way!
 5. Scroll down, click **Commit changes**
 
 #### Change the Date
-1. Still in `index.html`, find lines 257-273:
+1. Still in `index.html`, look for lines 259-276 (or search for "Feb 14th"):
    ```html
    <span>Feb 14th, 2026</span>
    <span>7:00 PM</span>
@@ -40,7 +40,26 @@ Want to create your own DateMePlease proposal? Here's the fastest way!
 
 ### Step 4: Get Your Link
 - Your site will be at: `https://YOURUSERNAME.github.io/ValentineAPP/`
-- Or add a custom domain in Settings → Pages
+
+### Optional: Use a Custom Domain (e.g., datemeplease.com.au)
+If you bought a domain, follow these exact steps to avoid errors:
+
+1. **In GitHub Settings → Pages:**
+   - Enter your domain in the "Custom domain" field.
+   - Click **Save**.
+   - This creates a `CNAME` file in your repo.
+
+2. **In Your Domain Provider (Cloudflare, GoDaddy, etc.):**
+   - Add a **CNAME** record:
+     - Name: `www`
+     - Content: `YOURUSERNAME.github.io`
+   - Add four **A** records for the root domain (`@`):
+     - `185.199.108.153`
+     - `185.199.109.153`
+     - `185.199.110.153`
+     - `185.199.111.153`
+
+> ⚠️ **Important:** Double-check the IPs! A single typo will break the site.
 
 ### Step 5: Send It! 💌
 Text the link to your Valentine!
@@ -50,13 +69,13 @@ Text the link to your Valentine!
 ## 🎨 Deeper Customization
 
 ### Change the Messages
-Edit `script.js` (lines 1-86) to change:
+Edit `script.js` (lines 2-96) to change:
 - Boot sequence text
 - Guilt-trip messages
 - Question variations
 
 ### Change GIFs
-Edit `script.js` (lines 13-31):
+Edit `script.js` (lines 13-32):
 1. Go to [Giphy](https://giphy.com)
 2. Find cute GIFs
 3. Copy the GIF URL
@@ -79,6 +98,11 @@ Edit `style.css` line 1-19 (CSS variables) to change the pink theme:
 **Site not showing?**
 - Check Settings → Pages for build errors
 - Make sure your repo is public
+
+**"Domain not served by Pages" error?**
+- Delete the custom domain from GitHub Settings, save, wait 10s, and re-add it.
+- Verify your A records match the IPs list above exactly.
+- Wait up to 24h (usually faster with Cloudflare).
 
 **Changes not appearing?**
 - Clear browser cache (Ctrl+Shift+R or Cmd+Shift+R)
