@@ -1,7 +1,7 @@
 /* --- CONFIGURATION --- */
 const config = {
     bootLogs: [
-        { text: "💕 Initializing Love_OS kernel...", type: "loading" },
+        { text: "💕 Initializing DateMePlease kernel...", type: "loading" },
         { text: "🌸 Loading cute_assets.pkg... [OK]", type: "success" },
         { text: "💗 Detecting user... HIGH_LEVEL_CUTENESS found", type: "success" },
         { text: "✨ Optimizing romance algorithms...", type: "loading" },
@@ -682,6 +682,6 @@ if (restartBtn) {
 
 // Add some easter eggs
 // Console message
-console.log('%c💕 Love_OS v14.0 💕', 'font-size: 24px; font-weight: bold; color: #ff69b4;');
+console.log('%c💕 DateMePlease 💕', 'font-size: 24px; font-weight: bold; color: #ff69b4;');
 console.log('%cMade with love for your special someone! 🌸', 'font-size: 14px; color: #ff1493;');
 console.log('%cIf you found this, you\'re either curious or debugging. Either way, have a great day! ✨', 'font-size: 12px; color: #666;');

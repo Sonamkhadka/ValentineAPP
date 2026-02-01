@@ -1,4 +1,4 @@
-# 💘 Love_OS v14.0 - The Ultimate Valentine's Proposal App
+# 💘 DateMePlease - The Ultimate Valentine's Proposal App
 
 <p align="center">
   <img src="https://img.shields.io/badge/Made%20with-HTML%2C%20CSS%2C%20JS-ff69b4?style=for-the-badge" />
@@ -7,14 +7,13 @@
 </p>
 
 <p align="center">
-  <b>A "gamified persistence" web app designed to be the cutest (and most unrefusable) digital Valentine's proposal.</b>
+  <b>A "gamified persistence" web app designed to be the cutest (and most unrefusable) way to ask someone out.</b><br>
+  <sub>✨ Formerly known as Love_OS v14.0 ✨</sub>
 </p>
 
 <p align="center">
-  🌸 <a href="#"><b>Live Demo</b></a> 🌸
+  🌸 <a href="https://datemeplease.com.au"><b>Live Demo</b></a> 🌸
 </p>
-
-<!-- Update the above link with your custom domain once deployed -->
 
 ---
 
@@ -46,7 +45,9 @@
 This app is deployed using GitHub Pages. You can:
 
 1. Visit the live demo at your custom domain
-2. Or fork this repo and set up your own deployment
+2. Or **[fork this repo](FORK_GUIDE.md)** and set up your own in 5 minutes!
+
+📖 **[📄 Read the Fork & Customize Guide](FORK_GUIDE.md)** for step-by-step instructions.
 
 <details>
 <summary><b>🔧 Setting Up GitHub Pages with Custom Domain</b></summary>
@@ -131,7 +132,7 @@ Edit the `config` object to personalize:
 const config = {
     bootLogs: [
         // Change the terminal messages
-        { text: "💕 Initializing Love_OS kernel...", type: "loading" },
+        { text: "💕 Initializing DateMePlease kernel...", type: "loading" },
         // ... more logs
     ],
     
@@ -198,13 +199,14 @@ sounds: {
 
 ```
 ValentineApp/
-├── index.html      # Main HTML structure
-├── style.css       # All styling and animations
-├── script.js       # Game logic and interactions
-├── README.md       # This file
-├── LICENSE         # MIT License
-├── .gitignore      # Git ignore rules
-└── CNAME           # Custom domain configuration (optional)
+├── index.html          # Main HTML structure
+├── style.css           # All styling and animations
+├── script.js           # Game logic and interactions
+├── README.md           # This file (overview & docs)
+├── FORK_GUIDE.md       # 🍴 Quick start guide for forkers
+├── LICENSE             # MIT License
+├── .gitignore          # Git ignore rules
+└── CNAME               # Custom domain configuration (optional)
 ```
 
 ---
@@ -233,12 +235,70 @@ ValentineApp/
 
 ---
 
-## 🤝 Contributing
+## 👨‍💻 For Developers
 
-Contributions are welcome! Feel free to:
-- Report bugs via [Issues](../../issues)
-- Suggest new features
-- Submit pull requests
+Want to contribute or run this locally? Here's how:
+
+### Prerequisites
+- Any modern web browser
+- Git (optional)
+- A text editor
+
+### Local Development
+
+```bash
+# Clone the repository
+git clone https://github.com/Sonamkhadka/ValentineAPP.git
+cd ValentineAPP
+
+# Open in browser (macOS)
+open index.html
+
+# Or on Windows
+start index.html
+
+# Or simply double-click index.html
+```
+
+No build step needed! It's pure HTML/CSS/JS.
+
+### Project Structure Explained
+
+```
+ValentineApp/
+├── index.html      # All UI screens (boot, captcha, question, etc.)
+├── style.css       # Animations, gradients, responsive design
+├── script.js       # Game logic: evasion, confetti, screen transitions
+├── CNAME           # Custom domain config (optional)
+└── ...config files
+```
+
+### How to Contribute
+
+1. **Fork** this repository
+2. **Create a branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** and test locally
+4. **Commit**: `git commit -m 'Add amazing feature'`
+5. **Push**: `git push origin feature/amazing-feature`
+6. **Open a Pull Request**
+
+### Contribution Ideas
+- [ ] Add more language translations
+- [ ] Create themes (dark mode, blue theme, etc.)
+- [ ] Add sound effect volume slider
+- [ ] Implement share buttons (Twitter, etc.)
+- [ ] Create a "Generate Your Own" wizard
+- [ ] Add easter eggs
+
+### Bug Reports
+Found a bug? [Open an issue](../../issues) with:
+- Browser & version
+- Steps to reproduce
+- Expected vs actual behavior
+
+---
+
+## 🤝 Contributing Guidelines
 
 ### Ideas for Contributions
 - [ ] Add more language translations

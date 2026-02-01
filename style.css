@@ -1951,6 +1951,45 @@ body {
     color: #ff1493;
 }
 
+/* --- APP FOOTER (Success Screen Only) --- */
+.app-footer {
+    margin-top: 1rem;
+    padding-top: 0.5rem;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.app-footer:hover {
+    opacity: 1;
+}
+
+.github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #ff69b4;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 182, 193, 0.4);
+    transition: all 0.3s ease;
+}
+
+.github-link:hover {
+    background: white;
+    box-shadow: 0 3px 12px rgba(255, 105, 180, 0.3);
+    transform: translateY(-2px);
+}
+
+.github-icon {
+    width: 14px;
+    height: 14px;
+    fill: #ff69b4;
+}
+
 /* --- ANIMATIONS --- */
 @keyframes blink {
 
