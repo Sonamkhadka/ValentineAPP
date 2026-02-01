@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff7eb3;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ff69b4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff1493;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="url(#heartGrad)"/>
+  <!-- Heart -->
+  <path d="M50 75 C50 75, 20 55, 20 35 C20 22, 30 15, 40 15 C45 15, 48 18, 50 22 C52 18, 55 15, 60 15 C70 15, 80 22, 80 35 C80 55, 50 75, 50 75Z" 
+        fill="white" 
+        filter="url(#glow)"/>
+  <!-- Sparkles -->
+  <text x="70" y="30" font-size="12" fill="white" opacity="0.9">✨</text>
+  <text x="15" y="40" font-size="10" fill="white" opacity="0.7">✨</text>
+</svg>
