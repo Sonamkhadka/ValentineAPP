@@ -31,20 +31,20 @@ const config = {
         ]
     },
     sounds: {
-        bgm: "https://cdn.pixabay.com/download/audio/2022/10/25/audio_4f61c958a5.mp3", // Keep lofi for intro
-        questionBgm: "https://www.myinstants.com/media/sounds/happy-happy-happy-song.mp3", // Happy Happy Happy
-        pop: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_29107954b0.mp3", // Pop sound
-        yay: "https://www.myinstants.com/media/sounds/anime-wow-sound-effect.mp3", // Anime Wow
-        bsod: "https://www.myinstants.com/media/sounds/your-computer-has-crashed.mp3", // BSOD Crash
-        hover: "https://cdn.pixabay.com/download/audio/2022/03/24/audio_804e9c73b6.mp3", // Soft tick
+        bgm: "assets/audio/bgm.mp3", // Keep lofi for intro
+        questionBgm: "assets/audio/happy.mp3", // Happy Happy Happy
+        pop: "assets/audio/pop.mp3", // Pop sound
+        yay: "assets/audio/yay.mp3", // Anime Wow
+        bsod: "assets/audio/bsod.mp3", // BSOD Crash
+        hover: "assets/audio/hover.mp3", // Soft tick
         // Sequence for "No" clicks
         noSequence: [
-            "https://www.myinstants.com/media/sounds/vine-boom-sound-effect_KT89XIq.mp3", // Thud
-            "https://www.myinstants.com/media/sounds/spongebob-fail.mp3", // SpongeBob Fail
-            "https://www.myinstants.com/media/sounds/fahhhhhhhhhhhhhh.mp3", // Fahhh
-            "https://www.myinstants.com/media/sounds/movie_1.mp3", // Bruh
-            "https://www.myinstants.com/media/sounds/sad-trombone.mp3", // Sad Trombone
-            "https://www.myinstants.com/media/sounds/emotional-damage-meme.mp3" // Emotional Damage
+            "assets/audio/no1.mp3", // Thud
+            "assets/audio/no2.mp3", // SpongeBob Fail
+            "assets/audio/no3.mp3", // Fahhh
+            "assets/audio/no4.mp3", // Bruh
+            "assets/audio/no5.mp3", // Sad Trombone
+            "assets/audio/no6.mp3"  // Emotional Damage
         ]
     },
     noTexts: [
