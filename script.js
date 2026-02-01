@@ -92,7 +92,13 @@ const config = {
         "You're so beautiful! 🌸",
         "I'll give you hugs! 🤗",
         "Pretty please with cherry on top? 🍒"
-    ]
+    ], // Removed extra ']'
+    // DATING DETAILS
+    datingDetails: {
+        partnerName: "Sonam", // Name of the person asking (YOU)
+        phoneNumber: "61400000000", // Your phone number (International format, no + specific for wa.me depends on region but generally full number)
+        message: "I said YES! See you on the 14th! 💕" // The message they will send TO YOU
+    }
 };
 
 /* --- STATE --- */
@@ -722,6 +728,24 @@ if (restartBtn) {
     });
 }
 
+// 8. SEND MESSAGE BUTTON
+const sendMsgBtn = document.getElementById('send-msg-btn');
+if (sendMsgBtn) {
+    sendMsgBtn.addEventListener('click', () => {
+        const { phoneNumber, message } = config.datingDetails;
+        if (!phoneNumber) {
+            alert("No phone number configured! Check script.js");
+            return;
+        }
+
+        // Create WhatsApp URL
+        const cleanPhone = phoneNumber.replace(/\D/g, '');
+        const encodedMsg = encodeURIComponent(message);
+
+        const url = `https://wa.me/${cleanPhone}?text=${encodedMsg}`;
+        window.open(url, '_blank');
+    });
+}
 // Add some easter eggs
 // Console message
 console.log('%c💕 DateMePlease 💕', 'font-size: 24px; font-weight: bold; color: #ff69b4;');
