@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     startBootSequence();
     setupNoButtonEvasion();
     preloadImages(); // Start loading images
-    
+
     // Enable audio on first user interaction (browser autoplay policy)
     const enableAudio = () => {
         if (!isMuted && bgm && bgm.paused) {
@@ -203,6 +203,28 @@ function setupAudio() {
     const musicBtn = document.getElementById('music-toggle');
     if (musicBtn) {
         musicBtn.addEventListener('click', toggleMusic);
+
+        // Initialize UI state
+        if (!isMuted) {
+            const icon = musicBtn.querySelector('.icon');
+            icon.textContent = '🔊';
+            musicBtn.classList.add('active');
+
+            // Try to play immediately (might be blocked)
+            bgm.play().catch(() => {
+                console.log("Autoplay blocked - waiting for interaction");
+                // Unlock on first interaction
+                const unlock = () => {
+                    if (!isMuted && bgm.paused) {
+                        bgm.play().catch(e => console.log("Play failed", e));
+                    }
+                    document.removeEventListener('click', unlock);
+                    document.removeEventListener('touchstart', unlock);
+                };
+                document.addEventListener('click', unlock);
+                document.addEventListener('touchstart', unlock);
+            });
+        }
     }
 }
 
