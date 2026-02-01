@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>💕 Love_OS v14.0 💕</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;600;800&family=Pacifico&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Floating Hearts Background -->
+    <div id="floating-hearts-container"></div>
+
+    <!-- Sound Control -->
+    <div id="sound-controls" class="sound-controls hidden">
+        <button id="music-toggle" class="icon-btn" title="Toggle Music">
+            <span class="icon">🔇</span>
+        </button>
+    </div>
+
+    <!-- STAGE 0: BOOT SEQUENCE -->
+    <div id="boot-screen" class="screen active">
+        <div class="terminal">
+            <div class="terminal-header">
+                <span class="terminal-dot pink"></span>
+                <span class="terminal-dot hotpink"></span>
+                <span class="terminal-dot lightpink"></span>
+                <span class="terminal-title">💕 love_terminal.exe 💕</span>
+            </div>
+            <div class="terminal-gif-container" style="text-align: center; margin-bottom: 10px;">
+                <img src="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3OXdnbXRudzBqbTdiajF4OWM1MXppeGlneDduaHQyZHcwYnNramN6MCZlcD12MV9naWZzX3RyZW5kaW5nJmN0PWc/pFZTlrO0MV6LoWSDXd/giphy.gif" alt="Loading GIF" class="boot-gif" style="max-width: 150px; border-radius: 10px;">
+            </div>
+            <div id="boot-log"></div>
+            <div class="cursor-container">
+                <span class="cursor-heart">💗</span>
+                <span class="cursor">_</span>
+            </div>
+        </div>
+        <div class="boot-decoration">
+            <span class="floating-emoji">🌸</span>
+            <span class="floating-emoji">💖</span>
+            <span class="floating-emoji">✨</span>
+            <span class="floating-emoji">🎀</span>
+            <span class="floating-emoji">💝</span>
+        </div>
+    </div>
+
+    <!-- STAGE 1: SECURITY CHECK -->
+    <div id="security-screen" class="screen hidden">
+        <div class="glass-card cute-card">
+            <div class="cute-corner top-left">🌸</div>
+            <div class="cute-corner top-right">💖</div>
+            <div class="cute-corner bottom-left">✨</div>
+            <div class="cute-corner bottom-right">🎀</div>
+            <div class="security-header">
+                <div class="security-gif-container" style="text-align: center; margin-bottom: 15px;">
+                    <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOTczbjJxam11NzYyNGthanN0N21ueDhiNDBhZDQ0MGJnNzY1OW85MyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/11fot0YzpQMA0g/giphy.gif" alt="Security GIF" class="security-gif" style="max-width: 120px; border-radius: 50%; box-shadow: 0 5px 15px rgba(255,105,180,0.3);">
+                </div>
+                <div class="lock-icon">🔒💕</div>
+                <h2>Security Verification</h2>
+                <p class="cute-subtitle">~ checking your cuteness levels ~</p>
+            </div>
+            <div class="profile-preview">
+                <div class="avatar-container">
+                    <div class="avatar">🧸</div>
+                    <div class="avatar-hearts">
+                        <span>💕</span><span>💕</span><span>💕</span>
+                    </div>
+                </div>
+                <div class="user-info">
+                    <p class="label">USER ALIAS</p>
+                    <h3 class="username">Pookie 🌸</h3>
+                    <p class="label">STATUS</p>
+                    <h3 class="status badge-blink">⚠️ SUSPICIOUSLY CUTE</h3>
+                </div>
+            </div>
+            <button id="security-btn" class="primary-btn cute-btn">
+                <span class="btn-sparkle left">✨</span>
+                Proceed
+                <span class="btn-heart">💕</span>
+                <span class="btn-sparkle right">✨</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- STAGE 2 (Logic Step 6): LOVE CAPTCHA -->
+    <div id="captcha-screen" class="screen hidden">
+        <div class="glass-card cute-card captcha-card">
+            <div class="cute-corner top-left">💗</div>
+            <div class="cute-corner top-right">🌸</div>
+            <div class="cute-corner bottom-left">🎀</div>
+            <div class="cute-corner bottom-right">💖</div>
+            <div class="captcha-header pink-header">
+                <div class="checkbox-container">
+                    <div class="spinner pink-spinner"></div>
+                </div>
+                <div class="captcha-title">
+                    <h2>Select all images that give you a</h2>
+                    <span class="highlight">REASON TO SAY YES 💕</span>
+                </div>
+            </div>
+            <div class="captcha-grid" id="captcha-grid">
+                <!-- Grid items injected via JS -->
+            </div>
+            <button id="captcha-verify-btn" class="primary-btn cute-btn">
+                <span class="btn-sparkle left">🌸</span>
+                VERIFY
+                <span class="btn-sparkle right">🌸</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- STAGE 3 (Logic Step 2): THE ENVELOPE -->
+    <div id="envelope-screen" class="screen hidden">
+        <div class="mail-gif-container" style="text-align: center; margin-bottom: 20px;">
+            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnVqamlpaGIwaDl1eTJ5a3BzaXY1c3A5MjUzejYybGJlbTB6Mm5uNCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/dUYjHGk8LyVhu/giphy.gif" alt="Minion Love" style="max-width: 220px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+        </div>
+        <div class="envelope-wrapper">
+            <div class="envelope-container" id="envelope">
+                <div class="flap">
+                    <div class="flap-hearts">
+                        <span>💕</span><span>💖</span><span>💕</span>
+                    </div>
+                </div>
+                <div class="body">
+                    <div class="body-pattern"></div>
+                </div>
+                <div class="letter">
+                    <div class="letter-content">
+                        <div class="heart-seal">💌</div>
+                        <p class="letter-text">Open me...</p>
+                    </div>
+                </div>
+                <div class="shadow"></div>
+            </div>
+            <div class="envelope-glow"></div>
+        </div>
+
+
+
+        <p class="hint-text cute-hint">
+            <span class="hint-heart">💕</span>
+            You have 1 new message...
+            <span class="hint-heart">💕</span>
+        </p>
+        <p class="hint-subtext">(tap the envelope 💌)</p>
+    </div>
+
+    <!-- STAGE 4 (Logic Step 3): THE QUESTION -->
+    <div id="question-screen" class="screen hidden">
+        <div class="question-container">
+            <div class="gif-container">
+                <div class="gif-frame">
+                    <img id="main-gif" src="https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif" alt="Cute GIF" class="reaction-gif">
+                    <div class="gif-hearts">
+                        <span class="gh-1">💕</span>
+                        <span class="gh-2">💖</span>
+                        <span class="gh-3">💗</span>
+                    </div>
+                </div>
+            </div>
+            <h1 class="main-question">
+                <span class="q-emoji left">🌸</span>
+                Will you be my Valentine?
+                <span class="q-emoji right">🌸</span>
+            </h1>
+            <p class="question-subtitle">(please say yes... 🥺💕)</p>
+
+            <div class="buttons-container">
+                <button id="yes-btn" class="action-btn yes cute-yes">
+                    <span class="yes-sparkles">✨</span>
+                    YES
+                    <span class="yes-hearts">💖</span>
+                </button>
+                <button id="no-btn" class="action-btn no cute-no">
+                    <span class="no-sad">💔</span>
+                    <span class="no-text">No</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Popups Container -->
+        <div id="popups-layer"></div>
+    </div>
+
+    <!-- STAGE 5 (Logic Step 4): BSOD -->
+    <div id="bsod-screen" class="screen hidden">
+        <div class="bsod-content">
+            <div class="sad-face-container">
+                <img src="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3azNkbGRuOXVpNG9xN25wMjJvNDd3OGk3bjR3ZDIxeHI5ZzdnczAwMyZlcD12MV9naWZzX3RyZW5kaW5nJmN0PWc/10yXFkBJ0MwGQ0/giphy.gif" alt="Sad Rejected GIF" class="bsod-gif">
+            </div>
+            <h2>Your heart ran into a problem and needs some love.</h2>
+            <p>We're just collecting some error info, and then we'll restart for you.</p>
+            <br>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <p class="progress-text">0% complete</p>
+            </div>
+            <br>
+            <div class="error-details pink-error">
+                <div class="qr-container">
+                    <div class="qr-code">
+                        <div class="qr-pattern">💔</div>
+                    </div>
+                    <p class="qr-label">Scan for hugs</p>
+                </div>
+                <div class="text-col">
+                    <p>For more information about this issue and possible fixes, visit <span class="pink-link">https://love-os.com/stop-code</span></p>
+                    <p>Stop code: <span class="blink pink-blink">HEART_BROKEN_EXCEPTION 💔</span></p>
+                    <p>Caused by: user_being_stubborn.exe</p>
+                    <p class="error-hint">(don't worry, you can fix this! 💕)</p>
+                </div>
+            </div>
+            <button id="reboot-btn" class="cmd-btn pink-cmd">
+                <span>🔄</span> REBOOT SYSTEM NOW <span>💕</span>
+            </button>
+        </div>
+        <div class="bsod-hearts">
+            <span>💔</span><span>💔</span><span>💔</span>
+        </div>
+    </div>
+
+    <!-- STAGE 6 (Logic Step 5): SUCCESS -->
+    <div id="success-screen" class="screen hidden">
+        <canvas id="confetti-canvas"></canvas>
+        <div class="success-hearts-bg">
+            <span>💕</span><span>💖</span><span>💗</span><span>💝</span><span>🌸</span>
+            <span>✨</span><span>💕</span><span>💖</span><span>💗</span><span>💝</span>
+        </div>
+        <div class="celebration-content">
+            <div class="final-gif-container">
+                <img id="final-gif" src="" alt="Celebration" class="final-gif">
+                <div class="gif-sparkles">
+                    <span>✨</span><span>✨</span><span>✨</span>
+                </div>
+            </div>
+            <h1 class="yay-text">
+                <span class="yay-emoji">🎉</span>
+                YAAAYYY!!!
+                <span class="yay-emoji">🎉</span>
+            </h1>
+            <p class="love-note">I knew you'd say yes! (Eventually... 💕)</p>
+
+            <div class="date-details glass-card cute-card success-card">
+                <div class="card-header">
+                    <span class="header-deco left">🌸</span>
+                    <h3>💕 The Date 💕</h3>
+                    <span class="header-deco right">🌸</span>
+                </div>
+                <div class="detail-row">
+                    <span class="icon">📅</span>
+                    <span>Feb 14th, 2026</span>
+                    <span class="row-deco">💕</span>
+                </div>
+                <div class="detail-row">
+                    <span class="icon">⏰</span>
+                    <span>7:00 PM</span>
+                    <span class="row-deco">💖</span>
+                </div>
+                <div class="detail-row">
+                    <span class="icon">📍</span>
+                    <span>Top Secret Location</span>
+                    <span class="row-deco">🌸</span>
+                </div>
+                <div class="detail-row highlight-row">
+                    <span class="icon">🎀</span>
+                    <span>Don't be late! 🥰</span>
+                    <span class="row-deco">✨</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
