@@ -69,6 +69,21 @@
                 <label for="builder-confirmation">Confirmation message</label>
                 <textarea id="builder-confirmation" name="confirmationMessage" rows="2" maxlength="160" placeholder="I said YES! See you soon 💕"></textarea>
 
+                <label for="builder-story-message">Emotional paragraph (optional)</label>
+                <textarea id="builder-story-message" name="storyMessage" rows="4" maxlength="700" placeholder="You make my world feel calmer, brighter, and full of love."></textarea>
+
+                <label for="builder-story-step">Show this paragraph at step #</label>
+                <select id="builder-story-step" name="storyStep">
+                    <option value="none">Do not show paragraph</option>
+                    <option value="1">Step 1 - Security screen</option>
+                    <option value="2">Step 2 - Captcha screen</option>
+                    <option value="3">Step 3 - Question appears</option>
+                    <option value="4">Step 4 - After 3 No clicks</option>
+                    <option value="5">Step 5 - BSOD screen</option>
+                    <option value="6">Step 6 - Success celebration</option>
+                </select>
+                <p class="builder-helper">Step guide: 1 Security, 2 Captcha, 3 Question, 4 After 3 No clicks, 5 BSOD, 6 Success.</p>
+
                 <button type="submit" class="primary-btn cute-btn builder-generate-btn">
                     <span class="btn-sparkle left">✨</span>
                     Generate Share Link

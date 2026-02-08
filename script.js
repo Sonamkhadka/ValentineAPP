@@ -108,7 +108,9 @@ const config = {
         time: "7:00 PM",
         location: "Top Secret Location",
         customLine: "Don't be late! 🥰",
-        confirmationMessage: "I said YES! See you soon! 💕"
+        confirmationMessage: "I said YES! See you soon! 💕",
+        storyMessage: "",
+        storyStep: "none"
     },
     messagePacks: {
         questionVariations: {
@@ -215,11 +217,14 @@ let sfx = {};
 let personalization = { ...config.personalizationDefaults };
 let popupTimers = [];
 let activeShareLink = '';
+let shownStorySteps = new Set();
+let storyHideTimer = null;
 const appMode = {
     builder: false,
     hasData: false
 };
 const validTones = new Set(['funny', 'emotional', 'mixed']);
+const validStorySteps = new Set(['none', '1', '2', '3', '4', '5', '6']);
 
 /* --- DOM ELEMENTS --- */
 const screens = {
@@ -239,6 +244,21 @@ function sanitizeText(value, fallback, maxLength) {
     return cleaned.slice(0, maxLength);
 }
 
+function sanitizeMultilineText(value, fallback, maxLength) {
+    if (typeof value !== 'string') return fallback;
+
+    const normalized = value
+        .replace(/\r\n?/g, '\n')
+        .split('\n')
+        .map((line) => line.replace(/\s+/g, ' ').trim())
+        .join('\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+
+    if (!normalized) return fallback;
+    return normalized.slice(0, maxLength);
+}
+
 function sanitizePhone(value, fallback) {
     if (typeof value !== 'string') return fallback;
     const cleaned = value.replace(/[^\d]/g, '').slice(0, 20);
@@ -249,6 +269,12 @@ function sanitizeTone(value, fallback) {
     if (typeof value !== 'string') return fallback;
     const tone = value.trim().toLowerCase();
     return validTones.has(tone) ? tone : fallback;
+}
+
+function sanitizeStoryStep(value, fallback) {
+    if (typeof value !== 'string') return fallback;
+    const step = value.trim().toLowerCase();
+    return validStorySteps.has(step) ? step : fallback;
 }
 
 function sanitizePersonalization(raw = {}) {
@@ -265,7 +291,9 @@ function sanitizePersonalization(raw = {}) {
         time: sanitizeText(raw.time, defaults.time, 40),
         location: sanitizeText(raw.location, defaults.location, 80),
         customLine: sanitizeText(raw.customLine, defaults.customLine, 120),
-        confirmationMessage: sanitizeText(raw.confirmationMessage, defaults.confirmationMessage, 160)
+        confirmationMessage: sanitizeText(raw.confirmationMessage, defaults.confirmationMessage, 160),
+        storyMessage: sanitizeMultilineText(raw.storyMessage, defaults.storyMessage, 700),
+        storyStep: sanitizeStoryStep(raw.storyStep, defaults.storyStep)
     };
 }
 
@@ -424,7 +452,87 @@ function queueQuestionPopups() {
     }
 }
 
+function closeStoryNote() {
+    const overlay = document.getElementById('story-note-overlay');
+    if (overlay) {
+        overlay.style.animation = 'fadeOut 0.2s ease forwards';
+        setTimeout(() => overlay.remove(), 180);
+    }
+    if (storyHideTimer) {
+        clearTimeout(storyHideTimer);
+        storyHideTimer = null;
+    }
+}
+
+function showStoryNote(message) {
+    if (!message) return;
+
+    closeStoryNote();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'story-note-overlay';
+    overlay.className = 'story-note-overlay';
+
+    const card = document.createElement('div');
+    card.className = 'story-note-card';
+
+    const title = document.createElement('h3');
+    title.className = 'story-note-title';
+    title.textContent = `A note from ${personalization.fromName} 💌`;
+
+    const body = document.createElement('div');
+    body.className = 'story-note-body';
+
+    const paragraphs = message.split(/\n+/).map((chunk) => chunk.trim()).filter(Boolean);
+    if (!paragraphs.length) {
+        paragraphs.push(message);
+    }
+
+    paragraphs.forEach((paragraph) => {
+        const p = document.createElement('p');
+        p.textContent = paragraph;
+        body.appendChild(p);
+    });
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'story-note-close';
+    closeBtn.type = 'button';
+    closeBtn.textContent = 'Close';
+    closeBtn.addEventListener('click', closeStoryNote);
+
+    card.appendChild(title);
+    card.appendChild(body);
+    card.appendChild(closeBtn);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) {
+            closeStoryNote();
+        }
+    });
+
+    storyHideTimer = setTimeout(() => {
+        closeStoryNote();
+    }, 9000);
+}
+
+function maybeShowStoryAtStep(step) {
+    if (!step || personalization.storyStep !== step) return;
+    if (!personalization.storyMessage) return;
+    if (shownStorySteps.has(step)) return;
+
+    shownStorySteps.add(step);
+    showStoryNote(renderTemplate(personalization.storyMessage));
+}
+
+function resetStoryStepTracking() {
+    shownStorySteps = new Set();
+    closeStoryNote();
+}
+
 function applyPersonalizationToUI() {
+    resetStoryStepTracking();
     setText('receiver-preview-name', `${personalization.toName} 🌸`);
     setText('date-detail-value', personalization.date);
     setText('time-detail-value', personalization.time);
@@ -464,6 +572,8 @@ function setBuilderFormValues(profile) {
     setInputValue('builder-location', profile.location);
     setInputValue('builder-custom-line', profile.customLine);
     setInputValue('builder-confirmation', profile.confirmationMessage);
+    setInputValue('builder-story-message', profile.storyMessage);
+    setInputValue('builder-story-step', profile.storyStep);
 }
 
 function setInputValue(id, value) {
@@ -481,7 +591,9 @@ function getBuilderPayload() {
         time: document.getElementById('builder-time')?.value || '',
         location: document.getElementById('builder-location')?.value || '',
         customLine: document.getElementById('builder-custom-line')?.value || '',
-        confirmationMessage: document.getElementById('builder-confirmation')?.value || ''
+        confirmationMessage: document.getElementById('builder-confirmation')?.value || '',
+        storyMessage: document.getElementById('builder-story-message')?.value || '',
+        storyStep: document.getElementById('builder-story-step')?.value || 'none'
     });
 }
 
@@ -765,12 +877,14 @@ async function startBootSequence() {
 
     await new Promise(r => setTimeout(r, 1200));
     switchScreen('boot', 'security');
+    maybeShowStoryAtStep('1');
 }
 
 // 2. SECURITY
 document.getElementById('security-btn').addEventListener('click', () => {
     playSound('pop');
     switchScreen('security', 'captcha');
+    maybeShowStoryAtStep('2');
     initCaptcha();
 });
 
@@ -860,6 +974,7 @@ function initQuestionScreen() {
 
     // Start popup compliments for the personalized vibe
     queueQuestionPopups();
+    maybeShowStoryAtStep('3');
 
     // Switch to Question BGM
     if (bgm) bgm.pause();
@@ -880,6 +995,7 @@ yesBtn.addEventListener('click', () => {
     finalGif.src = config.gifs.celebration;
 
     switchScreen('question', 'success');
+    maybeShowStoryAtStep('6');
 
     // Small delay for confetti to sync with screen transition
     setTimeout(() => fireConfetti(), 300);
@@ -1040,6 +1156,10 @@ function handleNoClick() {
         showEvasionWarning();
     }
 
+    if (noClickCount === 3) {
+        maybeShowStoryAtStep('4');
+    }
+
     // 4. Make No button shake
     noBtn.classList.add('evasive');
     setTimeout(() => noBtn.classList.remove('evasive'), 300);
@@ -1091,6 +1211,7 @@ function triggerBSOD() {
     playSound('bsod');
     setTimeout(() => playSound('laugh'), 500); // Play laugh shortly after crash
     switchScreen('question', 'bsod');
+    maybeShowStoryAtStep('5');
 }
 
 document.getElementById('reboot-btn').addEventListener('click', () => {

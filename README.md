@@ -33,6 +33,9 @@
 | 🎉 **Victory Celebration** | Confetti explosion with customizable date details |
 | 🔊 **Background Music** | Optional lofi music with toggle controls |
 | 📱 **Mobile Optimized** | Fully responsive, touch-friendly evasion mechanics |
+| 🔗 **Builder + Share Link** | Sender configures once (`?build=1`) and shares a personalized URL (no database needed) |
+| 💬 **Tone-Based Messages** | Funny, emotional, or mixed message packs with name placeholders |
+| ✨ **Love Popups** | Timed personalized popup lines during the question screen |
 
 ---
 
@@ -95,93 +98,73 @@ If you previously set up a custom domain and want to use the default `github.io`
 
 ---
 
+## 🔗 Personalized Share Flow (No Database)
+
+This project now uses a sender-side builder flow:
+
+1. Open the app in builder mode: `https://your-domain.com/?build=1`
+2. Fill in:
+   - Your name
+   - Partner name
+   - Message vibe (`funny`, `emotional`, `mixed`)
+   - Optional WhatsApp number
+   - Date/time/location/custom line
+   - Confirmation message
+   - Optional emotional paragraph + step number to display it:
+     - `1` Security
+     - `2` Captcha
+     - `3` Question appears
+     - `4` After 3 "No" clicks
+     - `5` BSOD
+     - `6` Success
+3. Click **Generate Share Link**
+4. Copy and send the generated URL (`?data=...`) to your partner
+
+Receiver behavior:
+- The receiver opens the personalized link and does **not** need to configure anything.
+- Name/tone/date details are loaded directly from the encoded URL payload.
+
+---
+
 ## 🎨 Customization Guide
 
-### 1. Change the Recipient's Name
+### 1. Customize with Builder UI (Recommended)
 
-**File:** `index.html` (Line 75)
-```html
-<h3 class="username">Pookie 🌸</h3>
-```
+No code edits required. Use:
 
-### 2. Update the Date Details
+`?build=1`
 
-**File:** `index.html` (Lines 257-273)
-```html
-<div class="detail-row">
-    <span class="icon">📅</span>
-    <span>Feb 14th, 2026</span>  <!-- Change this -->
-</div>
-<div class="detail-row">
-    <span class="icon">⏰</span>
-    <span>7:00 PM</span>  <!-- Change this -->
-</div>
-<div class="detail-row">
-    <span class="icon">📍</span>
-    <span>Top Secret Location</span>  <!-- Change this -->
-</div>
-```
+This is the main way to personalize for each person you send it to.
 
-### 3. Customize the Messages
+### 2. Customize Message Packs in Code (Advanced)
 
-**File:** `script.js` (Lines 1-86)
+**File:** `script.js`
 
-Edit the `config` object to personalize:
+Edit `config.messagePacks`:
+- `questionVariations`
+- `subtitles`
+- `popupMessages`
+- `successNotes`
 
-```javascript
-const config = {
-    bootLogs: [
-        // Change the terminal messages
-        { text: "💕 Initializing DateMePlease kernel...", type: "loading" },
-        // ... more logs
-    ],
+Use placeholders:
+- `{from}` -> sender name
+- `{to}` -> receiver name
 
-    noTexts: [
-        // Change guilt-trip messages
-        "No 💔",
-        "Are you sure? 🥺",
-        "Really sure? 💔",
-        // ... more messages
-    ],
+### 3. Change Default Builder Values (Advanced)
 
-    questionVariations: [
-        // Change the question variants
-        "Will you be my Valentine?",
-        "Pretty please? 🥺",
-        // ... more variations
-    ]
-};
-```
+**File:** `script.js`
 
-### 4. Replace GIFs
+Edit `config.personalizationDefaults` to prefill builder fields.
+- `storyMessage`
+- `storyStep`
 
-**File:** `script.js` (Lines 13-31)
+### 4. Replace GIFs and Audio
 
-Replace the Giphy URLs with your own:
-```javascript
-gifs: {
-    happy: "https://media.giphy.com/media/...",      // Happy reaction
-    celebration: "https://media.giphy.com/media/...", // Success celebration
-    sad: "https://media.giphy.com/media/...",         // Sad reaction
-    noSequence: [
-        // Sequential sad GIFs for "No" clicks
-    ]
-}
-```
+**File:** `script.js`
 
-### 5. Change Background Music
-
-**File:** `script.js` (Lines 33-38)
-
-Replace with your own audio URLs:
-```javascript
-sounds: {
-    bgm: "https://cdn.pixabay.com/...",  // Background music
-    pop: "https://cdn.pixabay.com/...",  // Pop sound
-    yay: "https://cdn.pixabay.com/...",  // Success sound
-    no: "https://cdn.pixabay.com/..."    // Reject sound
-}
-```
+Edit:
+- `config.gifs`
+- `config.sounds`
 
 ---
 
@@ -213,16 +196,18 @@ datemepleasep/
 
 ## 🎯 How It Works
 
-1. **Boot Sequence** - Terminal-style intro builds anticipation
-2. **Security Check** - Playful "identity verification"
-3. **Love Captcha** - Interactive image selection game
-4. **The Envelope** - Click to reveal the letter
-5. **The Question** - Main interactive experience:
+1. **Builder (Sender Only)** - Optional setup mode via `?build=1`, generates personalized share URL
+2. **Boot Sequence** - Terminal-style intro builds anticipation
+3. **Security Check** - Playful "identity verification"
+4. **Love Captcha** - Interactive image selection game
+5. **The Envelope** - Click to reveal the letter
+6. **The Question** - Main interactive experience:
    - First few "No" clicks show sad GIFs
    - After 5 clicks: Button becomes evasive (runs from cursor)
    - After 12 clicks: Fake "Heart Broken Exception" BSOD
    - "Yes" button grows larger with each "No" click
-6. **Success** - Confetti celebration with date details
+   - Personalized popup lines appear based on selected tone
+7. **Success** - Confetti celebration with personalized date details and message
 
 ---
 
