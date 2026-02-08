@@ -23,6 +23,73 @@
         </button>
     </div>
 
+    <!-- Builder Launcher (sender mode only) -->
+    <div id="builder-launcher" class="builder-launcher">
+        <button id="open-builder-btn" class="builder-open-btn">💌 Build Share Link</button>
+    </div>
+
+    <!-- Personalization Builder Modal -->
+    <div id="builder-modal" class="builder-modal" aria-hidden="true">
+        <div id="builder-backdrop" class="builder-backdrop"></div>
+        <div class="builder-card glass-card cute-card" role="dialog" aria-modal="true" aria-labelledby="builder-title">
+            <div class="builder-header">
+                <h2 id="builder-title">Create Personalized Link</h2>
+                <p>Set this once as the sender, then share the generated link.</p>
+            </div>
+
+            <form id="builder-form" class="builder-form">
+                <label for="builder-from-name">Your name</label>
+                <input id="builder-from-name" name="fromName" type="text" maxlength="40" required>
+
+                <label for="builder-to-name">Partner name</label>
+                <input id="builder-to-name" name="toName" type="text" maxlength="40" required>
+
+                <label for="builder-tone">Message vibe</label>
+                <select id="builder-tone" name="tone">
+                    <option value="mixed">Mixed (Funny + Emotional)</option>
+                    <option value="emotional">Emotional</option>
+                    <option value="funny">Funny</option>
+                </select>
+
+                <label for="builder-phone">WhatsApp number (optional)</label>
+                <input id="builder-phone" name="phoneNumber" type="tel" maxlength="20" placeholder="61400000000">
+
+                <label for="builder-date">Date text</label>
+                <input id="builder-date" name="date" type="text" maxlength="60" placeholder="Feb 14th, 2026">
+
+                <label for="builder-time">Time text</label>
+                <input id="builder-time" name="time" type="text" maxlength="40" placeholder="7:00 PM">
+
+                <label for="builder-location">Location text</label>
+                <input id="builder-location" name="location" type="text" maxlength="80" placeholder="Top Secret Location">
+
+                <label for="builder-custom-line">Special line</label>
+                <textarea id="builder-custom-line" name="customLine" rows="2" maxlength="120" placeholder="Can't wait to see your smile 💕"></textarea>
+
+                <label for="builder-confirmation">Confirmation message</label>
+                <textarea id="builder-confirmation" name="confirmationMessage" rows="2" maxlength="160" placeholder="I said YES! See you soon 💕"></textarea>
+
+                <button type="submit" class="primary-btn cute-btn builder-generate-btn">
+                    <span class="btn-sparkle left">✨</span>
+                    Generate Share Link
+                    <span class="btn-sparkle right">✨</span>
+                </button>
+            </form>
+
+            <div id="share-link-result" class="share-link-result">
+                <label for="share-link-output">Share this URL</label>
+                <input id="share-link-output" type="text" readonly>
+                <div class="share-actions">
+                    <button id="copy-share-link-btn" type="button" class="primary-btn cute-btn">Copy Link</button>
+                    <a id="open-share-link-btn" class="primary-btn cute-btn" target="_blank" rel="noopener">Open Link</a>
+                </div>
+                <p id="share-link-status" class="share-link-status"></p>
+            </div>
+
+            <button id="close-builder-btn" type="button" class="builder-close-btn">Close</button>
+        </div>
+    </div>
+
     <!-- STAGE 0: BOOT SEQUENCE -->
     <div id="boot-screen" class="screen active">
         <div class="terminal">
@@ -74,7 +141,7 @@
                 </div>
                 <div class="user-info">
                     <p class="label">USER ALIAS</p>
-                    <h3 class="username">Pookie 🌸</h3>
+                    <h3 id="receiver-preview-name" class="username">Pookie 🌸</h3>
                     <p class="label">STATUS</p>
                     <h3 class="status badge-blink">⚠️ SUSPICIOUSLY CUTE</h3>
                 </div>
@@ -166,10 +233,10 @@
             </div>
             <h1 class="main-question">
                 <span class="q-emoji left">🌸</span>
-                Will you be my Valentine?
+                <span id="main-question-text">Will you be my Valentine?</span>
                 <span class="q-emoji right">🌸</span>
             </h1>
-            <p class="question-subtitle">(please say yes... 🥺💕)</p>
+            <p id="question-subtitle" class="question-subtitle">(please say yes... 🥺💕)</p>
 
             <div class="buttons-container">
                 <button id="yes-btn" class="action-btn yes cute-yes">
@@ -256,7 +323,7 @@
                 YAAAYYY!!!
                 <span class="yay-emoji">🎉</span>
             </h1>
-            <p class="love-note">I knew you'd say yes! (Eventually... 💕)</p>
+            <p id="love-note" class="love-note">I knew you'd say yes! (Eventually... 💕)</p>
 
             <div class="date-details glass-card cute-card success-card">
                 <div class="card-header">
@@ -266,22 +333,22 @@
                 </div>
                 <div class="detail-row">
                     <span class="icon">📅</span>
-                    <span>Feb 14th, 2026</span>
+                    <span id="date-detail-value">Feb 14th, 2026</span>
                     <span class="row-deco">💕</span>
                 </div>
                 <div class="detail-row">
                     <span class="icon">⏰</span>
-                    <span>7:00 PM</span>
+                    <span id="time-detail-value">7:00 PM</span>
                     <span class="row-deco">💖</span>
                 </div>
                 <div class="detail-row">
                     <span class="icon">📍</span>
-                    <span>Top Secret Location</span>
+                    <span id="location-detail-value">Top Secret Location</span>
                     <span class="row-deco">🌸</span>
                 </div>
                 <div class="detail-row highlight-row">
                     <span class="icon">🎀</span>
-                    <span>Don't be late! 🥰</span>
+                    <span id="highlight-detail-value">Don't be late! 🥰</span>
                     <span class="row-deco">✨</span>
                 </div>
             </div>
@@ -289,7 +356,7 @@
             <!-- Send Message Button -->
             <button id="send-msg-btn" class="primary-btn cute-btn" style="margin-top: 1.5rem; max-width: 90%; width: 420px;">
                 <span class="btn-sparkle left">💌</span>
-                Send Confirmation
+                <span id="send-confirm-label">Send Confirmation</span>
                 <span class="btn-sparkle right">💌</span>
             </button>
 
@@ -303,6 +370,27 @@
                 </a>
             </div>
         </div>
+    </div>
+
+    <!-- TROLL ELEMENTS -->
+
+    <!-- The Trivia Quiz Challenge -->
+    <div id="quiz-modal" class="quiz-modal">
+        <div class="quiz-header">
+            <div class="quiz-emoji">🧠</div>
+            <div class="quiz-title">TRIVIA CHALLENGE!</div>
+            <div class="quiz-subtitle">Answer correctly to continue clicking No...</div>
+        </div>
+        <div class="quiz-question" id="quiz-question">
+            What is the correct answer?
+        </div>
+        <div class="quiz-options" id="quiz-options">
+            <button class="quiz-option" data-answer="0">A) Option 1</button>
+            <button class="quiz-option" data-answer="1">B) Option 2</button>
+            <button class="quiz-option" data-answer="2">C) Option 3</button>
+            <button class="quiz-option" data-answer="3">D) Option 4</button>
+        </div>
+        <div class="quiz-result" id="quiz-result"></div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>

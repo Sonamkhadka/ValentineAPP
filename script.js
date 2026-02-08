@@ -36,6 +36,7 @@ const config = {
         pop: "assets/audio/pop.mp3", // Pop sound
         yay: "assets/audio/yay.mp3", // Anime Wow
         bsod: "assets/audio/bsod.mp3", // BSOD Crash
+        laugh: "https://www.myinstants.com/media/sounds/el-risitas-funniest-laugh-ever-mp3cut.mp3", // El Risitas Laugh
         hover: "assets/audio/hover.mp3", // Soft tick
         // Sequence for "No" clicks
         noSequence: [
@@ -95,9 +96,107 @@ const config = {
     ], // Removed extra ']'
     // DATING DETAILS
     datingDetails: {
-        partnerName: "Sonam", // Name of the person asking (YOU)
-        phoneNumber: "61400000000", // Your phone number (International format, no + specific for wa.me depends on region but generally full number)
-        message: "I said YES! See you on the 14th! 💕" // The message they will send TO YOU
+        phoneNumber: "61400000000", // Fallback WhatsApp number
+        message: "I said YES! See you on the 14th! 💕" // Fallback confirmation
+    },
+    personalizationDefaults: {
+        fromName: "Your Secret Admirer",
+        toName: "Cutie",
+        tone: "mixed",
+        phoneNumber: "",
+        date: "Feb 14th, 2026",
+        time: "7:00 PM",
+        location: "Top Secret Location",
+        customLine: "Don't be late! 🥰",
+        confirmationMessage: "I said YES! See you soon! 💕"
+    },
+    messagePacks: {
+        questionVariations: {
+            funny: [
+                "{to}, will you be my Valentine?",
+                "Clicking YES gives you lifetime VIP cuddles 😌",
+                "{to}, don't break this dramatic rom-com scene 💔",
+                "I already rehearsed my happy dance for your YES 🕺",
+                "If you say YES, I promise snacks and zero chaos 🍫",
+                "Come on {to}, let's make this official 💌"
+            ],
+            emotional: [
+                "{to}, will you be my Valentine?",
+                "You make ordinary moments feel warm and safe.",
+                "My favorite place is wherever you are, {to}.",
+                "I want more memories with you, one day at a time.",
+                "You matter to me more than I can explain.",
+                "Say YES, and let's keep choosing each other. 💗"
+            ],
+            mixed: [
+                "{to}, will you be my Valentine?",
+                "You're my favorite notification every day 📱💕",
+                "Life feels softer with you in it.",
+                "Say YES and I'll bring dessert plus emotional support 🍰",
+                "I really, really like you, {to}.",
+                "Let's make this a cute love story together."
+            ]
+        },
+        subtitles: {
+            funny: [
+                "(from {from}, professionally down bad 😅)",
+                "(this is your sign to say yes ✨)",
+                "(no pressure... okay maybe a little 🥺)",
+                "(I can be charming after coffee, promise ☕)",
+                "(I already told my playlist about us 🎵)",
+                "(last call for romance mode 💘)"
+            ],
+            emotional: [
+                "(from {from}, with all my heart 💗)",
+                "(you feel like home to me)",
+                "(I don't want to imagine life without you)",
+                "(thank you for being you)",
+                "(I mean every word)",
+                "(please choose us 💞)"
+            ],
+            mixed: [
+                "(from {from}, please say yes... 🥺💕)",
+                "(I can offer hugs and snacks 😌)",
+                "(you make me smile for no reason)",
+                "(I promise to be worth it 💖)",
+                "(this is me being brave for you)",
+                "(say yes and let's celebrate 🎉)"
+            ]
+        },
+        popupMessages: {
+            funny: [
+                "{to}, even my Wi-Fi gets stronger around you 📶💕",
+                "Breaking news: {from} has a massive crush.",
+                "You + me + snacks = elite combo 🍿",
+                "If love was homework, I'd still pick you.",
+                "Petition to make us official starts now ✍️"
+            ],
+            emotional: [
+                "You are my calm in loud days, {to}.",
+                "You make my heart feel understood.",
+                "I feel lucky every time I think of you.",
+                "Thank you for being part of my world.",
+                "With you, love feels peaceful and real."
+            ],
+            mixed: [
+                "You make my heart do happy cartwheels, {to}.",
+                "I'd choose you in every timeline 💫",
+                "{from} + {to} sounds right to me.",
+                "You're my favorite person to laugh with.",
+                "Let's turn this into our favorite memory."
+            ]
+        },
+        successNotes: {
+            funny: [
+                "Yesss! {to} unlocked romance mode. {from} is celebrating already 🎉"
+            ],
+            emotional: [
+                "Thank you for saying yes, {to}. This means a lot to {from}. 💗"
+            ],
+            mixed: [
+                "I knew you'd say yes, {to}! (Eventually... 💕)"
+            ]
+        }
     }
 };
 
@@ -113,6 +212,14 @@ let isEvasive = false;
 let isMuted = false;
 let bgm = null;
 let sfx = {};
+let personalization = { ...config.personalizationDefaults };
+let popupTimers = [];
+let activeShareLink = '';
+const appMode = {
+    builder: false,
+    hasData: false
+};
+const validTones = new Set(['funny', 'emotional', 'mixed']);
 
 /* --- DOM ELEMENTS --- */
 const screens = {
@@ -125,12 +232,352 @@ const screens = {
     success: document.getElementById('success-screen')
 };
 
+function sanitizeText(value, fallback, maxLength) {
+    if (typeof value !== 'string') return fallback;
+    const cleaned = value.replace(/\s+/g, ' ').trim();
+    if (!cleaned) return fallback;
+    return cleaned.slice(0, maxLength);
+}
+
+function sanitizePhone(value, fallback) {
+    if (typeof value !== 'string') return fallback;
+    const cleaned = value.replace(/[^\d]/g, '').slice(0, 20);
+    return cleaned || fallback;
+}
+
+function sanitizeTone(value, fallback) {
+    if (typeof value !== 'string') return fallback;
+    const tone = value.trim().toLowerCase();
+    return validTones.has(tone) ? tone : fallback;
+}
+
+function sanitizePersonalization(raw = {}) {
+    const defaults = config.personalizationDefaults;
+    const fromName = sanitizeText(raw.fromName, defaults.fromName, 40);
+    const toName = sanitizeText(raw.toName, defaults.toName, 40);
+
+    return {
+        fromName,
+        toName,
+        tone: sanitizeTone(raw.tone, defaults.tone),
+        phoneNumber: sanitizePhone(raw.phoneNumber, defaults.phoneNumber),
+        date: sanitizeText(raw.date, defaults.date, 60),
+        time: sanitizeText(raw.time, defaults.time, 40),
+        location: sanitizeText(raw.location, defaults.location, 80),
+        customLine: sanitizeText(raw.customLine, defaults.customLine, 120),
+        confirmationMessage: sanitizeText(raw.confirmationMessage, defaults.confirmationMessage, 160)
+    };
+}
+
+function renderTemplate(template) {
+    if (typeof template !== 'string') return '';
+    return template
+        .replace(/\{from\}/g, personalization.fromName)
+        .replace(/\{to\}/g, personalization.toName);
+}
+
+function getToneMessages(groupName, fallback) {
+    const groups = config.messagePacks[groupName];
+    if (!groups) return fallback || [];
+    return groups[personalization.tone] || groups.mixed || fallback || [];
+}
+
+function pickMessageAt(messages, index, fallbackMessages) {
+    const source = Array.isArray(messages) && messages.length ? messages : (fallbackMessages || []);
+    if (!source.length) return '';
+    const safeIndex = Math.min(index, source.length - 1);
+    return source[safeIndex];
+}
+
+function encodePayload(payload) {
+    const json = JSON.stringify(payload);
+    const bytes = new TextEncoder().encode(json);
+    let binary = '';
+
+    bytes.forEach((b) => {
+        binary += String.fromCharCode(b);
+    });
+
+    return btoa(binary)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+}
+
+function decodePayload(encoded) {
+    try {
+        const base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
+        const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+        const binary = atob(padded);
+        const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+        const json = new TextDecoder().decode(bytes);
+        return JSON.parse(json);
+    } catch (err) {
+        console.warn('Failed to decode shared payload:', err);
+        return null;
+    }
+}
+
+function buildShareUrl(payload) {
+    const encoded = encodePayload(payload);
+    return `${window.location.origin}${window.location.pathname}?data=${encoded}`;
+}
+
+function parsePersonalizationFromQuery() {
+    const params = new URLSearchParams(window.location.search);
+    appMode.builder = params.get('build') === '1';
+
+    const encoded = params.get('data');
+    if (!encoded) {
+        personalization = sanitizePersonalization(config.personalizationDefaults);
+        return;
+    }
+
+    const decoded = decodePayload(encoded);
+    if (!decoded || typeof decoded !== 'object') {
+        personalization = sanitizePersonalization(config.personalizationDefaults);
+        return;
+    }
+
+    appMode.hasData = true;
+    personalization = sanitizePersonalization(decoded);
+}
+
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+}
+
+function updateQuestionCopy(questionIndex) {
+    const fallbackQuestions = config.questionVariations;
+    const questionTemplate = pickMessageAt(
+        getToneMessages('questionVariations', fallbackQuestions),
+        questionIndex,
+        fallbackQuestions
+    );
+
+    setText('main-question-text', renderTemplate(questionTemplate));
+
+    const questionEl = document.querySelector('.main-question');
+    if (questionEl) {
+        questionEl.style.animation = 'none';
+        setTimeout(() => {
+            questionEl.style.animation = 'popIn 0.4s ease';
+        }, 10);
+    }
+}
+
+function updateSubtitleCopy(subtitleIndex) {
+    const fallbackSubtitles = [
+        "(please say yes... 🥺💕)",
+        "(come on... 🥺)",
+        "(I'm begging you! 😢)",
+        "(why are you doing this?! 💔)",
+        "(my heart is breaking... 😭)",
+        "(I'll do anything! 🙏)"
+    ];
+    const subtitleTemplate = pickMessageAt(
+        getToneMessages('subtitles', fallbackSubtitles),
+        subtitleIndex,
+        fallbackSubtitles
+    );
+    setText('question-subtitle', renderTemplate(subtitleTemplate));
+}
+
+function clearQuestionPopups() {
+    popupTimers.forEach((timerId) => clearTimeout(timerId));
+    popupTimers = [];
+    const layer = document.getElementById('popups-layer');
+    if (layer) layer.innerHTML = '';
+}
+
+function showLovePopup(message, slot) {
+    const layer = document.getElementById('popups-layer');
+    if (!layer || !message) return;
+
+    const popup = document.createElement('div');
+    popup.className = 'love-popup';
+    popup.textContent = message;
+
+    const xPositions = [18, 50, 78, 34];
+    const yPositions = [10, 24, 38, 52];
+    popup.style.left = `${xPositions[slot % xPositions.length]}%`;
+    popup.style.top = `${yPositions[slot % yPositions.length]}%`;
+
+    layer.appendChild(popup);
+    setTimeout(() => popup.remove(), 3600);
+}
+
+function queueQuestionPopups() {
+    clearQuestionPopups();
+
+    const popupTemplates = getToneMessages('popupMessages', []);
+    const maxPopups = Math.min(4, popupTemplates.length);
+    if (!maxPopups) return;
+
+    for (let i = 0; i < maxPopups; i++) {
+        const popupTemplate = popupTemplates[i];
+        const timerId = setTimeout(() => {
+            showLovePopup(renderTemplate(popupTemplate), i);
+        }, 1100 + (i * 2500));
+        popupTimers.push(timerId);
+    }
+}
+
+function applyPersonalizationToUI() {
+    setText('receiver-preview-name', `${personalization.toName} 🌸`);
+    setText('date-detail-value', personalization.date);
+    setText('time-detail-value', personalization.time);
+    setText('location-detail-value', personalization.location);
+    setText('highlight-detail-value', personalization.customLine);
+    setText('send-confirm-label', `Send Confirmation to ${personalization.fromName}`);
+
+    const successTemplates = getToneMessages('successNotes', ['I knew you would say yes! 💕']);
+    const successTemplate = pickMessageAt(successTemplates, 0, successTemplates);
+    setText('love-note', renderTemplate(successTemplate));
+
+    updateQuestionCopy(0);
+    updateSubtitleCopy(0);
+}
+
+function openBuilderModal() {
+    const modal = document.getElementById('builder-modal');
+    if (!modal) return;
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeBuilderModal() {
+    const modal = document.getElementById('builder-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+}
+
+function setBuilderFormValues(profile) {
+    setInputValue('builder-from-name', profile.fromName);
+    setInputValue('builder-to-name', profile.toName);
+    setInputValue('builder-tone', profile.tone);
+    setInputValue('builder-phone', profile.phoneNumber);
+    setInputValue('builder-date', profile.date);
+    setInputValue('builder-time', profile.time);
+    setInputValue('builder-location', profile.location);
+    setInputValue('builder-custom-line', profile.customLine);
+    setInputValue('builder-confirmation', profile.confirmationMessage);
+}
+
+function setInputValue(id, value) {
+    const input = document.getElementById(id);
+    if (input) input.value = value || '';
+}
+
+function getBuilderPayload() {
+    return sanitizePersonalization({
+        fromName: document.getElementById('builder-from-name')?.value || '',
+        toName: document.getElementById('builder-to-name')?.value || '',
+        tone: document.getElementById('builder-tone')?.value || 'mixed',
+        phoneNumber: document.getElementById('builder-phone')?.value || '',
+        date: document.getElementById('builder-date')?.value || '',
+        time: document.getElementById('builder-time')?.value || '',
+        location: document.getElementById('builder-location')?.value || '',
+        customLine: document.getElementById('builder-custom-line')?.value || '',
+        confirmationMessage: document.getElementById('builder-confirmation')?.value || ''
+    });
+}
+
+function setShareLinkResult(url, status) {
+    const resultBox = document.getElementById('share-link-result');
+    const output = document.getElementById('share-link-output');
+    const openLink = document.getElementById('open-share-link-btn');
+    const statusEl = document.getElementById('share-link-status');
+
+    if (resultBox) resultBox.classList.add('active');
+    if (output) output.value = url;
+    if (openLink) openLink.href = url;
+    if (statusEl) statusEl.textContent = status;
+}
+
+async function copyShareLink() {
+    const output = document.getElementById('share-link-output');
+    const statusEl = document.getElementById('share-link-status');
+
+    if (!output || !output.value) return;
+
+    try {
+        await navigator.clipboard.writeText(output.value);
+        if (statusEl) statusEl.textContent = 'Copied. Send this link to your partner.';
+    } catch (err) {
+        output.focus();
+        output.select();
+        const copied = document.execCommand('copy');
+        if (statusEl) {
+            statusEl.textContent = copied
+                ? 'Copied. Send this link to your partner.'
+                : 'Copy failed. Select the URL manually and copy.';
+        }
+    }
+}
+
+function setupBuilder() {
+    const launcher = document.getElementById('builder-launcher');
+    const openBtn = document.getElementById('open-builder-btn');
+    const closeBtn = document.getElementById('close-builder-btn');
+    const backdrop = document.getElementById('builder-backdrop');
+    const form = document.getElementById('builder-form');
+    const copyBtn = document.getElementById('copy-share-link-btn');
+
+    if (!launcher || !openBtn || !closeBtn || !backdrop || !form || !copyBtn) return;
+
+    launcher.classList.toggle('visible', appMode.builder);
+
+    setBuilderFormValues(personalization);
+
+    if (appMode.builder) {
+        openBuilderModal();
+        activeShareLink = buildShareUrl(personalization);
+        setShareLinkResult(activeShareLink, 'Share this link. It opens directly in receiver mode.');
+    }
+
+    openBtn.addEventListener('click', () => {
+        openBuilderModal();
+    });
+
+    closeBtn.addEventListener('click', () => {
+        closeBuilderModal();
+    });
+
+    backdrop.addEventListener('click', () => {
+        closeBuilderModal();
+    });
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        personalization = getBuilderPayload();
+        applyPersonalizationToUI();
+
+        activeShareLink = buildShareUrl(personalization);
+        setShareLinkResult(activeShareLink, 'Link generated. Copy it and share.');
+
+        if (screens.question.classList.contains('active')) {
+            queueQuestionPopups();
+        }
+    });
+
+    copyBtn.addEventListener('click', () => {
+        copyShareLink();
+    });
+}
+
 /* --- INITIALIZATION --- */
 document.addEventListener('DOMContentLoaded', () => {
+    parsePersonalizationFromQuery();
+    applyPersonalizationToUI();
     createFloatingHearts();
+    setupBuilder();
     setupAudio(); // Initialize Audio (ON by default)
     startBootSequence();
     setupNoButtonEvasion();
+    setupQuiz(); // Initialize Quiz Troll
     preloadImages(); // Start loading images
 
     // Enable audio on first user interaction (browser autoplay policy)
@@ -273,6 +720,10 @@ function switchScreen(hideId, showId) {
 
     screens[showId].classList.remove('hidden');
     screens[showId].classList.add('active');
+
+    if (hideId === 'question') {
+        clearQuestionPopups();
+    }
 }
 
 // 1. BOOT SEQUENCE - Cute pink edition
@@ -393,15 +844,22 @@ function initQuestionScreen() {
     const mainGif = document.getElementById('main-gif');
     mainGif.src = config.gifs.happy;
 
+    updateQuestionCopy(0);
+    updateSubtitleCopy(0);
+
     // Reset no button
     noClickCount = 0;
     isEvasive = false;
     const noBtn = document.getElementById('no-btn');
     noBtn.style.position = 'static';
+    noBtn.style.left = '';
+    noBtn.style.top = '';
     noBtn.style.transform = 'none';
     noBtn.querySelector('.no-text').textContent = 'No';
-    noBtn.querySelector('.no-text').textContent = 'No';
     noBtn.classList.remove('scared');
+
+    // Start popup compliments for the personalized vibe
+    queueQuestionPopups();
 
     // Switch to Question BGM
     if (bgm) bgm.pause();
@@ -541,31 +999,9 @@ function handleNoClick() {
     }
 
     // 1. Change the QUESTION text (not the button!)
-    const questionEl = document.querySelector('.main-question');
-    const subtitleEl = document.querySelector('.question-subtitle');
-    const questionIndex = Math.min(noClickCount - 1, config.questionVariations.length - 1);
-
-    questionEl.innerHTML = `
-        <span class="q-emoji left">🌸</span>
-        ${config.questionVariations[questionIndex]}
-        <span class="q-emoji right">🌸</span>
-    `;
-    questionEl.style.animation = 'none';
-    setTimeout(() => {
-        questionEl.style.animation = 'popIn 0.4s ease';
-    }, 10);
-
-    // Update subtitle with escalating desperation
-    const subtitles = [
-        "(please say yes... 🥺💕)",
-        "(come on... 🥺)",
-        "(I'm begging you! 😢)",
-        "(why are you doing this?! 💔)",
-        "(my heart is breaking... 😭)",
-        "(I'll do anything! 🙏)"
-    ];
-    const subtitleIndex = Math.min(Math.floor(noClickCount / 2), subtitles.length - 1);
-    subtitleEl.textContent = subtitles[subtitleIndex];
+    updateQuestionCopy(noClickCount - 1);
+    const subtitleIndex = Math.min(Math.floor(noClickCount / 2), 5);
+    updateSubtitleCopy(subtitleIndex);
 
     // 2. Grow Yes Button (keep button text simple)
     const scale = Math.min(1 + (noClickCount * 0.15), 1.5);
@@ -608,6 +1044,13 @@ function handleNoClick() {
     noBtn.classList.add('evasive');
     setTimeout(() => noBtn.classList.remove('evasive'), 300);
 
+    // --- TROLL EVENTS ---
+    // Quiz appears at click 6
+    if (noClickCount === 6) {
+        triggerQuizTroll();
+        return; // Block further clicks until quiz is done
+    }
+
     // 5. BSOD Trigger after 12 clicks
     if (noClickCount >= 12 && !isBSODTriggered) {
         triggerBSOD();
@@ -617,7 +1060,7 @@ function handleNoClick() {
 function showEvasionWarning() {
     const warning = document.createElement('div');
     warning.className = 'evasion-warning';
-    warning.innerHTML = 'I got you! Try now 😉 ✨';
+    warning.textContent = renderTemplate('{to}, I got you! Try now 😉 ✨');
     warning.style.cssText = `
         position: fixed;
         top: 20px;
@@ -646,6 +1089,7 @@ function triggerBSOD() {
     isBSODTriggered = true;
     if (bgm) bgm.pause();
     playSound('bsod');
+    setTimeout(() => playSound('laugh'), 500); // Play laugh shortly after crash
     switchScreen('question', 'bsod');
 }
 
@@ -656,17 +1100,31 @@ document.getElementById('reboot-btn').addEventListener('click', () => {
 
     const bsodScreen = document.getElementById('bsod-screen');
     bsodScreen.classList.remove('active');
+    bsodScreen.classList.add('hidden');
 
+    screens.question.classList.remove('hidden');
     screens.question.classList.add('active');
 
-    // Reset No button but keep Yes button massive
+    // Fully reset No button state
     noBtn.style.position = 'static';
-    noBtn.style.transform = 'none';
+    noBtn.style.left = '';
+    noBtn.style.top = '';
+    noBtn.style.transform = 'scale(1)';
+    noBtn.style.opacity = '1';
     noBtn.style.transition = 'all 0.3s';
-    noBtn.querySelector('.no-text').textContent = "I'll be good! 💔";
+    noBtn.querySelector('.no-text').textContent = "No";
+
+    // Resume question BGM
+    if (!isMuted && sfx.questionBgm) {
+        sfx.questionBgm.play().catch(e => { });
+    }
+
+    updateQuestionCopy(noClickCount - 1);
+    updateSubtitleCopy(Math.min(Math.floor(noClickCount / 2), 5));
+    queueQuestionPopups();
 
     // Show a hopeful GIF
-    mainGif.src = config.gifs.happy; // Fallback to happy
+    mainGif.src = config.gifs.happy;
 });
 
 // 7. SUCCESS - Cute confetti edition
@@ -732,9 +1190,10 @@ if (restartBtn) {
 const sendMsgBtn = document.getElementById('send-msg-btn');
 if (sendMsgBtn) {
     sendMsgBtn.addEventListener('click', () => {
-        const { phoneNumber, message } = config.datingDetails;
+        const phoneNumber = personalization.phoneNumber || (appMode.hasData ? '' : config.datingDetails.phoneNumber);
+        const message = personalization.confirmationMessage || config.datingDetails.message;
         if (!phoneNumber) {
-            alert("No phone number configured! Check script.js");
+            alert("No WhatsApp number is included in this link.");
             return;
         }
 
@@ -746,6 +1205,239 @@ if (sendMsgBtn) {
         window.open(url, '_blank');
     });
 }
+// 9. TROLL FUNCTIONS
+function triggerButtonHeist() {
+    const pawContainer = document.getElementById('paw-container');
+    const noBtn = document.getElementById('no-btn');
+
+    if (!pawContainer || !noBtn) return;
+
+    // Create dramatic overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'heist-overlay';
+    overlay.innerHTML = `
+        <div class="heist-message">
+            <div class="heist-emoji">🐱</div>
+            <div class="heist-text">A CAT APPEARED!</div>
+            <div class="heist-subtext">It seems interested in your button...</div>
+        </div>
+    `;
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 9998;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    `;
+    document.body.appendChild(overlay);
+
+    // Style the message
+    const msgBox = overlay.querySelector('.heist-message');
+    msgBox.style.cssText = `
+        background: white;
+        padding: 30px 50px;
+        border-radius: 20px;
+        text-align: center;
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    `;
+    overlay.querySelector('.heist-emoji').style.cssText = `font-size: 4rem; margin-bottom: 10px;`;
+    overlay.querySelector('.heist-text').style.cssText = `font-size: 1.5rem; font-weight: bold; color: #ff69b4;`;
+    overlay.querySelector('.heist-subtext').style.cssText = `font-size: 1rem; color: #666; margin-top: 5px;`;
+
+    // 1. Paw enters from the right (after 1.5s)
+    setTimeout(() => {
+        pawContainer.style.transition = 'right 1s ease-in-out';
+        pawContainer.style.right = '20%';
+
+        // Update message
+        overlay.querySelector('.heist-text').textContent = "WAIT... IT'S STEALING THE BUTTON!";
+        overlay.querySelector('.heist-subtext').textContent = "🐾 YOINK! 🐾";
+        overlay.querySelector('.heist-emoji').textContent = "😼";
+    }, 1500);
+
+    // 2. Button disappears (after 3s)
+    setTimeout(() => {
+        playSound('pop');
+        noBtn.style.transition = 'all 0.3s ease';
+        noBtn.style.transform = 'scale(0)';
+        noBtn.style.opacity = '0';
+    }, 3000);
+
+    // 3. Paw leaves with button (after 3.5s)
+    setTimeout(() => {
+        pawContainer.style.right = '-300px';
+
+        // Update message
+        overlay.querySelector('.heist-text').textContent = "YOUR BUTTON IS GONE! 😱";
+        overlay.querySelector('.heist-subtext').textContent = "Guess you'll have to click YES now...";
+        overlay.querySelector('.heist-emoji').textContent = "🙀";
+    }, 3500);
+
+    // 4. Remove overlay and restore button (after 6s)
+    setTimeout(() => {
+        overlay.style.animation = 'fadeOut 0.5s ease forwards';
+
+        setTimeout(() => {
+            overlay.remove();
+            // Restore button with "defeated" animation
+            noBtn.style.transform = 'scale(1)';
+            noBtn.style.opacity = '1';
+            noBtn.querySelector('.no-text').textContent = "Fine... 😿";
+        }, 500);
+    }, 6000);
+}
+
+// Quiz Questions - Real General Knowledge!
+// Each has a correct answer index (0-3)
+const quizQuestions = [
+    {
+        question: "What is the capital of Australia?",
+        options: ["Sydney", "Melbourne", "Canberra", "Perth"],
+        correct: 2
+    },
+    {
+        question: "How many planets are in our solar system?",
+        options: ["7", "8", "9", "10"],
+        correct: 1
+    },
+    {
+        question: "What year did the Titanic sink?",
+        options: ["1905", "1912", "1920", "1898"],
+        correct: 1
+    },
+    {
+        question: "Which element has the chemical symbol 'Au'?",
+        options: ["Silver", "Copper", "Gold", "Aluminum"],
+        correct: 2
+    },
+    {
+        question: "What is the largest ocean on Earth?",
+        options: ["Atlantic", "Indian", "Arctic", "Pacific"],
+        correct: 3
+    },
+    {
+        question: "Who painted the Mona Lisa?",
+        options: ["Michelangelo", "Leonardo da Vinci", "Van Gogh", "Picasso"],
+        correct: 1
+    }
+];
+
+let currentQuizIndex = 0;
+
+function setupQuiz() {
+    const optionBtns = document.querySelectorAll('.quiz-option');
+
+    optionBtns.forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+            handleQuizAnswer(index);
+        });
+    });
+}
+
+function handleQuizAnswer(selectedIndex) {
+    const q = quizQuestions[currentQuizIndex];
+    const resultDiv = document.getElementById('quiz-result');
+    const optionBtns = document.querySelectorAll('.quiz-option');
+
+    playSound('pop');
+
+    // Highlight selected
+    optionBtns[selectedIndex].style.transform = 'scale(1.05)';
+
+    if (selectedIndex === q.correct) {
+        // CORRECT!
+        optionBtns[selectedIndex].style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
+        optionBtns[selectedIndex].style.color = 'white';
+
+        resultDiv.innerHTML = '✅ Correct! You may continue... for now 😏';
+        resultDiv.style.cssText = `
+            margin-top: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            border-radius: 10px;
+            font-weight: bold;
+            animation: popIn 0.3s ease;
+        `;
+
+        // Close quiz and let them continue
+        setTimeout(() => {
+            const modal = document.getElementById('quiz-modal');
+            modal.classList.remove('active');
+            resetQuiz();
+        }, 1500);
+
+    } else {
+        // WRONG! Trigger BSOD!
+        optionBtns[selectedIndex].style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+        optionBtns[selectedIndex].style.color = 'white';
+
+        // Show correct answer
+        optionBtns[q.correct].style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
+        optionBtns[q.correct].style.color = 'white';
+
+        resultDiv.innerHTML = '❌ WRONG! The correct answer was: ' + q.options[q.correct] + ' 💔';
+        resultDiv.style.cssText = `
+            margin-top: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border-radius: 10px;
+            font-weight: bold;
+            animation: popIn 0.3s ease;
+        `;
+
+        // Trigger BSOD after delay
+        setTimeout(() => {
+            const modal = document.getElementById('quiz-modal');
+            modal.classList.remove('active');
+            resetQuiz();
+            triggerBSOD();
+        }, 2000);
+    }
+}
+
+function resetQuiz() {
+    const options = document.querySelectorAll('.quiz-option');
+    options.forEach(btn => {
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.style.transform = '';
+    });
+    document.getElementById('quiz-result').innerHTML = '';
+
+    // Load next question for variety
+    currentQuizIndex = (currentQuizIndex + 1) % quizQuestions.length;
+}
+
+function loadQuizQuestion() {
+    const q = quizQuestions[currentQuizIndex];
+    document.getElementById('quiz-question').textContent = q.question;
+
+    const optionBtns = document.querySelectorAll('.quiz-option');
+    q.options.forEach((opt, i) => {
+        if (optionBtns[i]) {
+            optionBtns[i].textContent = String.fromCharCode(65 + i) + ") " + opt;
+        }
+    });
+}
+
+function triggerQuizTroll() {
+    const modal = document.getElementById('quiz-modal');
+    loadQuizQuestion();
+    modal.classList.add('active');
+
+    // Play notification sound
+    const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3');
+    audio.play().catch(e => { });
+}
+
 // Add some easter eggs
 // Console message
 console.log('%c💕 DateMePlease 💕', 'font-size: 24px; font-weight: bold; color: #ff69b4;');
